@@ -5,7 +5,6 @@ import {
   Check,
   Download,
   Edit3,
-  Eye,
   Filter,
   Lock,
   Plus,
@@ -82,11 +81,6 @@ function Header({ view, setView, status }) {
           <small>Before & After Archive</small>
         </span>
       </a>
-      <nav className="top-actions" aria-label="Primary">
-        <button className={view === "gallery" ? "active" : ""} onClick={() => go("gallery")}>
-          <Eye size={17} /> Gallery
-        </button>
-      </nav>
     </header>
   );
 }
@@ -182,17 +176,6 @@ function CaseCard({ item, onOpen }) {
         </div>
       </button>
       <div className="case-body">
-        <div className="meta-row">
-          <span>{item.doctor}</span>
-          <span>{item.category} / {item.subcategory}</span>
-        </div>
-        <h3>{item.title}</h3>
-        <p>{item.summary}</p>
-        <div className="tag-row">
-          {item.tags.map((tag) => (
-            <span key={tag}>{tag}</span>
-          ))}
-        </div>
       </div>
     </article>
   );

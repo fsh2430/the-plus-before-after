@@ -280,7 +280,7 @@ main {
 }
 
 .case-body {
-  padding: 20px;
+  display: none;
 }
 
 .meta-row,
