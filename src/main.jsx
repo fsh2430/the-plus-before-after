@@ -75,11 +75,7 @@ function Header({ view, setView, status }) {
   return (
     <header className="site-header">
       <a className="brand" href="#" onClick={() => go("gallery")}>
-        <span className="brand-mark" aria-label="The Plus logo">THE PLUS</span>
-        <span>
-          <strong>The Plus Plastic Surgery</strong>
-          <small>Before & After Archive</small>
-        </span>
+        <img className="brand-logo" src="/the-plus-logo.png" alt="The Plus Plastic Surgery" />
       </a>
     </header>
   );
