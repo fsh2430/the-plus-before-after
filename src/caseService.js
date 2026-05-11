@@ -1,5 +1,5 @@
 import { initialCases } from "./data";
-import { isSupabaseConfigured, normalizeAlignment, supabase, supabaseConfig, toCase, toRow } from "./supabaseClient";
+import { isSupabaseConfigured, normalizeAlignment, normalizeViews, supabase, supabaseConfig, toCase, toRow } from "./supabaseClient";
 
 const STORAGE_KEY = "the-plus-before-after-cases";
 
@@ -35,7 +35,8 @@ function normalizeCases(cases) {
     subcategory: item.subcategory || "General",
     tags: item.tags || [],
     beforeAlignment: normalizeAlignment(item.beforeAlignment),
-    afterAlignment: normalizeAlignment(item.afterAlignment)
+    afterAlignment: normalizeAlignment(item.afterAlignment),
+    views: normalizeViews(item.views, item)
   }));
 }
 

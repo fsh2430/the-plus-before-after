@@ -28,6 +28,11 @@ import "./styles.css";
 
 const ADMIN_KEY = "the-plus-admin-ok";
 const DEFAULT_ALIGNMENT = { x: 50, y: 50, zoom: 1 };
+const CASE_VIEW_DEFS = [
+  { key: "front", label: "Front" },
+  { key: "angle45", label: "45 Degree" },
+  { key: "angle90", label: "90 Degree" }
+];
 
 function App() {
   const [view, setView] = useState(location.hash === "#admin" ? "admin" : "gallery");
@@ -159,15 +164,17 @@ function SelectIcon({ icon, value, onChange, options }) {
 }
 
 function CaseCard({ item, onOpen }) {
+  const primaryView = getPrimaryView(item);
+
   return (
     <article className="case-card">
       <button className="ba-preview" onClick={onOpen} aria-label={`${item.title} before and after`}>
         <div>
-          <AlignedImage src={item.beforeImage} alt={`${item.title} before`} alignment={item.beforeAlignment} />
+          <AlignedImage src={primaryView.beforeImage} alt={`${item.title} before`} alignment={primaryView.beforeAlignment} />
           <span>Before</span>
         </div>
         <div>
-          <AlignedImage src={item.afterImage} alt={`${item.title} after`} alignment={item.afterAlignment} />
+          <AlignedImage src={primaryView.afterImage} alt={`${item.title} after`} alignment={primaryView.afterAlignment} />
           <span>After</span>
         </div>
       </button>
@@ -178,27 +185,37 @@ function CaseCard({ item, onOpen }) {
 }
 
 function CaseModal({ item, onClose }) {
-  const [slider, setSlider] = useState(50);
+  const availableViews = getCaseViews(item).filter((view) => view.beforeImage || view.afterImage);
+  const [activeViewKey, setActiveViewKey] = useState(availableViews[0]?.key || "front");
+  const activeView = availableViews.find((view) => view.key === activeViewKey) || availableViews[0] || getPrimaryView(item);
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true">
       <div className="modal">
         <button className="close" onClick={onClose}>Close</button>
-        <div className="comparison" style={{ "--split": `${slider}%` }}>
-          <AlignedImage className="after" src={item.afterImage} alt={`${item.title} after`} alignment={item.afterAlignment} />
-          <AlignedImage className="before" src={item.beforeImage} alt={`${item.title} before`} alignment={item.beforeAlignment} />
-          <span className="divider" />
-          <span className="comparison-handle" aria-hidden="true">
-            <ArrowLeftRight size={22} />
-          </span>
-          <input
-            type="range"
-            min="5"
-            max="95"
-            value={slider}
-            onChange={(e) => setSlider(e.target.value)}
-            aria-label="Before after comparison"
-          />
+        <div className="view-comparison">
+          <div className="view-tabs" role="tablist" aria-label="Case view angle">
+            {availableViews.map((view) => (
+              <button
+                key={view.key}
+                className={activeView.key === view.key ? "active" : ""}
+                type="button"
+                onClick={() => setActiveViewKey(view.key)}
+              >
+                {view.label}
+              </button>
+            ))}
+          </div>
+          <div className="view-pair">
+            <figure>
+              <AlignedImage src={activeView.beforeImage} alt={`${item.title} ${activeView.label} before`} alignment={activeView.beforeAlignment} />
+              <figcaption>Before</figcaption>
+            </figure>
+            <figure>
+              <AlignedImage src={activeView.afterImage} alt={`${item.title} ${activeView.label} after`} alignment={activeView.afterAlignment} />
+              <figcaption>After</figcaption>
+            </figure>
+          </div>
         </div>
         <div className="modal-copy">
           <p className="eyebrow">{item.doctor} / {item.category} / {item.subcategory}</p>
@@ -351,6 +368,7 @@ function AdminLogin({ onLogin }) {
 function CaseEditor({ item, onSave, onCancel }) {
   const [draft, setDraft] = useState({
     ...item,
+    views: normalizeCaseViews(item),
     beforeAlignment: normalizeAlignment(item.beforeAlignment),
     afterAlignment: normalizeAlignment(item.afterAlignment),
     tagsText: item.tags.join(", ")
@@ -361,8 +379,15 @@ function CaseEditor({ item, onSave, onCancel }) {
 
   const submit = (event) => {
     event.preventDefault();
+    const views = normalizeCaseViews(draft);
+    const front = views.front;
     onSave({
       ...draft,
+      views,
+      beforeImage: front.beforeImage,
+      afterImage: front.afterImage,
+      beforeAlignment: front.beforeAlignment,
+      afterAlignment: front.afterAlignment,
       id: draft.id || slugify(draft.title),
       tags: draft.tagsText.split(",").map((tag) => tag.trim()).filter(Boolean),
       featured: Boolean(draft.featured),
@@ -384,6 +409,33 @@ function CaseEditor({ item, onSave, onCancel }) {
     }
   };
 
+  const uploadViewImage = async (viewKey, field, file) => {
+    if (!file) return;
+    setError("");
+    setUploading(`${viewKey} ${field} uploading...`);
+    try {
+      const url = await uploadCaseImage(file, `${viewKey}-${field}`);
+      updateView(viewKey, field, url);
+      setUploading(`${viewKey} ${field} uploaded.`);
+    } catch (uploadError) {
+      setError(uploadError.message);
+      setUploading("");
+    }
+  };
+
+  const updateView = (viewKey, field, value) => {
+    setDraft((current) => ({
+      ...current,
+      views: {
+        ...normalizeCaseViews(current),
+        [viewKey]: {
+          ...normalizeCaseViews(current)[viewKey],
+          [field]: value
+        }
+      }
+    }));
+  };
+
   const updateAlignment = (field, key, value) => {
     setDraft((current) => ({
       ...current,
@@ -392,6 +444,25 @@ function CaseEditor({ item, onSave, onCancel }) {
         [key]: Number(value)
       }
     }));
+  };
+
+  const updateViewAlignment = (viewKey, field, key, value) => {
+    setDraft((current) => {
+      const views = normalizeCaseViews(current);
+      return {
+        ...current,
+        views: {
+          ...views,
+          [viewKey]: {
+            ...views[viewKey],
+            [field]: {
+              ...normalizeAlignment(views[viewKey][field]),
+              [key]: Number(value)
+            }
+          }
+        }
+      };
+    });
   };
 
   return (
@@ -417,28 +488,16 @@ function CaseEditor({ item, onSave, onCancel }) {
         </label>
         <label>Timeline<input value={draft.timeline} onChange={(e) => update("timeline", e.target.value)} /></label>
         <label>Summary<textarea value={draft.summary} onChange={(e) => update("summary", e.target.value)} rows="3" /></label>
-        <label>
-          Before image
-          <input type="file" accept="image/*" onChange={(e) => uploadImage("beforeImage", "before", e.target.files?.[0])} />
-          <input value={draft.beforeImage} onChange={(e) => update("beforeImage", e.target.value)} placeholder="Uploaded URL or external image URL" />
-        </label>
-        <AlignmentControl
-          title="Before face position"
-          image={draft.beforeImage}
-          alignment={draft.beforeAlignment}
-          onChange={(key, value) => updateAlignment("beforeAlignment", key, value)}
-        />
-        <label>
-          After image
-          <input type="file" accept="image/*" onChange={(e) => uploadImage("afterImage", "after", e.target.files?.[0])} />
-          <input value={draft.afterImage} onChange={(e) => update("afterImage", e.target.value)} placeholder="Uploaded URL or external image URL" />
-        </label>
-        <AlignmentControl
-          title="After face position"
-          image={draft.afterImage}
-          alignment={draft.afterAlignment}
-          onChange={(key, value) => updateAlignment("afterAlignment", key, value)}
-        />
+        {CASE_VIEW_DEFS.map((view) => (
+          <ViewPairEditor
+            key={view.key}
+            view={view}
+            values={normalizeCaseViews(draft)[view.key]}
+            onImageChange={updateView}
+            onImageUpload={uploadViewImage}
+            onAlignmentChange={updateViewAlignment}
+          />
+        ))}
         <label>Tags<input value={draft.tagsText} onChange={(e) => update("tagsText", e.target.value)} placeholder="Rhinoplasty, 6 months" /></label>
         {uploading && <p className="admin-notice">{uploading}</p>}
         {error && <p className="admin-error">{error}</p>}
@@ -453,6 +512,7 @@ function CaseEditor({ item, onSave, onCancel }) {
 }
 
 function emptyCase() {
+  const views = emptyViews();
   return {
     id: "",
     title: "",
@@ -464,11 +524,44 @@ function emptyCase() {
     summary: "",
     beforeImage: "",
     afterImage: "",
+    views,
     beforeAlignment: DEFAULT_ALIGNMENT,
     afterAlignment: DEFAULT_ALIGNMENT,
     consent: true,
     featured: false
   };
+}
+
+function ViewPairEditor({ view, values, onImageChange, onImageUpload, onAlignmentChange }) {
+  return (
+    <section className="view-editor">
+      <h3>{view.label} Before &amp; After</h3>
+      <div className="form-split">
+        <label>
+          Before image
+          <input type="file" accept="image/*" onChange={(e) => onImageUpload(view.key, "beforeImage", e.target.files?.[0])} />
+          <input value={values.beforeImage} onChange={(e) => onImageChange(view.key, "beforeImage", e.target.value)} placeholder={`${view.label} before image URL`} />
+        </label>
+        <label>
+          After image
+          <input type="file" accept="image/*" onChange={(e) => onImageUpload(view.key, "afterImage", e.target.files?.[0])} />
+          <input value={values.afterImage} onChange={(e) => onImageChange(view.key, "afterImage", e.target.value)} placeholder={`${view.label} after image URL`} />
+        </label>
+      </div>
+      <AlignmentControl
+        title={`${view.label} before position`}
+        image={values.beforeImage}
+        alignment={values.beforeAlignment}
+        onChange={(key, value) => onAlignmentChange(view.key, "beforeAlignment", key, value)}
+      />
+      <AlignmentControl
+        title={`${view.label} after position`}
+        image={values.afterImage}
+        alignment={values.afterAlignment}
+        onChange={(key, value) => onAlignmentChange(view.key, "afterAlignment", key, value)}
+      />
+    </section>
+  );
 }
 
 function AlignmentControl({ title, image, alignment = DEFAULT_ALIGNMENT, onChange }) {
@@ -507,6 +600,45 @@ function AlignmentControl({ title, image, alignment = DEFAULT_ALIGNMENT, onChang
       </div>
     </section>
   );
+}
+
+function getCaseViews(item) {
+  const views = normalizeCaseViews(item);
+  return CASE_VIEW_DEFS.map((view) => ({
+    ...view,
+    ...views[view.key]
+  }));
+}
+
+function getPrimaryView(item) {
+  return getCaseViews(item).find((view) => view.beforeImage && view.afterImage) || getCaseViews(item)[0];
+}
+
+function normalizeCaseViews(item = {}) {
+  const views = item.views || {};
+  return {
+    front: normalizeCaseView(views.front, {
+      beforeImage: item.beforeImage,
+      afterImage: item.afterImage,
+      beforeAlignment: item.beforeAlignment,
+      afterAlignment: item.afterAlignment
+    }),
+    angle45: normalizeCaseView(views.angle45),
+    angle90: normalizeCaseView(views.angle90)
+  };
+}
+
+function normalizeCaseView(value = {}, fallback = {}) {
+  return {
+    beforeImage: value.beforeImage || fallback.beforeImage || "",
+    afterImage: value.afterImage || fallback.afterImage || "",
+    beforeAlignment: normalizeAlignment(value.beforeAlignment || fallback.beforeAlignment),
+    afterAlignment: normalizeAlignment(value.afterAlignment || fallback.afterAlignment)
+  };
+}
+
+function emptyViews() {
+  return normalizeCaseViews({});
 }
 
 function AlignedImage({ src, alt, alignment = DEFAULT_ALIGNMENT, className = "" }) {

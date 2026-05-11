@@ -31,6 +31,7 @@ export function toCase(row) {
     afterImage: row.after_image,
     beforeAlignment: normalizeAlignment(row.before_alignment),
     afterAlignment: normalizeAlignment(row.after_alignment),
+    views: normalizeViews(row.view_images, row),
     consent: Boolean(row.consent),
     featured: Boolean(row.featured)
   };
@@ -50,9 +51,33 @@ export function toRow(item) {
     after_image: item.afterImage,
     before_alignment: normalizeAlignment(item.beforeAlignment),
     after_alignment: normalizeAlignment(item.afterAlignment),
+    view_images: normalizeViews(item.views, item),
     consent: Boolean(item.consent),
     featured: Boolean(item.featured),
     updated_at: new Date().toISOString()
+  };
+}
+
+export function normalizeViews(value, fallback = {}) {
+  const source = value || {};
+  return {
+    front: normalizeView(source.front, {
+      beforeImage: fallback.before_image || fallback.beforeImage || "",
+      afterImage: fallback.after_image || fallback.afterImage || "",
+      beforeAlignment: fallback.before_alignment || fallback.beforeAlignment,
+      afterAlignment: fallback.after_alignment || fallback.afterAlignment
+    }),
+    angle45: normalizeView(source.angle45),
+    angle90: normalizeView(source.angle90)
+  };
+}
+
+function normalizeView(value = {}, fallback = {}) {
+  return {
+    beforeImage: value.beforeImage || fallback.beforeImage || "",
+    afterImage: value.afterImage || fallback.afterImage || "",
+    beforeAlignment: normalizeAlignment(value.beforeAlignment || fallback.beforeAlignment),
+    afterAlignment: normalizeAlignment(value.afterAlignment || fallback.afterAlignment)
   };
 }
 
