@@ -367,14 +367,37 @@ main {
   width: 2px;
   background: white;
   box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.05);
+  pointer-events: none;
+  transform: translateX(-1px);
+}
+
+.comparison-handle {
+  position: absolute;
+  left: var(--split);
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.34);
+  color: white;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
 }
 
 .comparison input {
   position: absolute;
   inset: 0;
+  z-index: 3;
   width: 100%;
   opacity: 0;
   cursor: ew-resize;
+  touch-action: pan-y;
 }
 
 .modal-copy {

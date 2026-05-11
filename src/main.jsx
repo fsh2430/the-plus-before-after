@@ -188,6 +188,9 @@ function CaseModal({ item, onClose }) {
           <AlignedImage className="after" src={item.afterImage} alt={`${item.title} after`} alignment={item.afterAlignment} />
           <AlignedImage className="before" src={item.beforeImage} alt={`${item.title} before`} alignment={item.beforeAlignment} />
           <span className="divider" />
+          <span className="comparison-handle" aria-hidden="true">
+            <ArrowLeftRight size={22} />
+          </span>
           <input
             type="range"
             min="5"
