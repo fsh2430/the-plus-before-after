@@ -28,6 +28,7 @@ import { isSupabaseConfigured, supabase } from "./supabaseClient";
 import "./styles.css";
 
 const ADMIN_KEY = "the-plus-admin-ok";
+const DEFAULT_ALIGNMENT = { x: 50, y: 50, zoom: 1 };
 
 function App() {
   const [view, setView] = useState(location.hash === "#admin" ? "admin" : "gallery");
@@ -176,11 +177,11 @@ function CaseCard({ item, onOpen }) {
     <article className="case-card">
       <button className="ba-preview" onClick={onOpen} aria-label={`${item.title} before and after`}>
         <div>
-          <img src={item.beforeImage} alt={`${item.title} before`} />
+          <AlignedImage src={item.beforeImage} alt={`${item.title} before`} alignment={item.beforeAlignment} />
           <span>Before</span>
         </div>
         <div>
-          <img src={item.afterImage} alt={`${item.title} after`} />
+          <AlignedImage src={item.afterImage} alt={`${item.title} after`} alignment={item.afterAlignment} />
           <span>After</span>
         </div>
       </button>
@@ -209,8 +210,8 @@ function CaseModal({ item, onClose }) {
       <div className="modal">
         <button className="close" onClick={onClose}>Close</button>
         <div className="comparison" style={{ "--split": `${slider}%` }}>
-          <img className="after" src={item.afterImage} alt={`${item.title} after`} />
-          <img className="before" src={item.beforeImage} alt={`${item.title} before`} />
+          <AlignedImage className="after" src={item.afterImage} alt={`${item.title} after`} alignment={item.afterAlignment} />
+          <AlignedImage className="before" src={item.beforeImage} alt={`${item.title} before`} alignment={item.beforeAlignment} />
           <span className="divider" />
           <input
             type="range"
@@ -370,7 +371,12 @@ function AdminLogin({ onLogin }) {
 }
 
 function CaseEditor({ item, onSave, onCancel }) {
-  const [draft, setDraft] = useState({ ...item, tagsText: item.tags.join(", ") });
+  const [draft, setDraft] = useState({
+    ...item,
+    beforeAlignment: normalizeAlignment(item.beforeAlignment),
+    afterAlignment: normalizeAlignment(item.afterAlignment),
+    tagsText: item.tags.join(", ")
+  });
   const [uploading, setUploading] = useState("");
   const [error, setError] = useState("");
   const update = (field, value) => setDraft((current) => ({ ...current, [field]: value }));
@@ -398,6 +404,16 @@ function CaseEditor({ item, onSave, onCancel }) {
       setError(uploadError.message);
       setUploading("");
     }
+  };
+
+  const updateAlignment = (field, key, value) => {
+    setDraft((current) => ({
+      ...current,
+      [field]: {
+        ...normalizeAlignment(current[field]),
+        [key]: Number(value)
+      }
+    }));
   };
 
   return (
@@ -428,11 +444,23 @@ function CaseEditor({ item, onSave, onCancel }) {
           <input type="file" accept="image/*" onChange={(e) => uploadImage("beforeImage", "before", e.target.files?.[0])} />
           <input value={draft.beforeImage} onChange={(e) => update("beforeImage", e.target.value)} placeholder="Uploaded URL or external image URL" />
         </label>
+        <AlignmentControl
+          title="Before face position"
+          image={draft.beforeImage}
+          alignment={draft.beforeAlignment}
+          onChange={(key, value) => updateAlignment("beforeAlignment", key, value)}
+        />
         <label>
           After image
           <input type="file" accept="image/*" onChange={(e) => uploadImage("afterImage", "after", e.target.files?.[0])} />
           <input value={draft.afterImage} onChange={(e) => update("afterImage", e.target.value)} placeholder="Uploaded URL or external image URL" />
         </label>
+        <AlignmentControl
+          title="After face position"
+          image={draft.afterImage}
+          alignment={draft.afterAlignment}
+          onChange={(key, value) => updateAlignment("afterAlignment", key, value)}
+        />
         <label>Tags<input value={draft.tagsText} onChange={(e) => update("tagsText", e.target.value)} placeholder="Rhinoplasty, 6 months" /></label>
         {uploading && <p className="admin-notice">{uploading}</p>}
         {error && <p className="admin-error">{error}</p>}
@@ -458,9 +486,79 @@ function emptyCase() {
     summary: "",
     beforeImage: "",
     afterImage: "",
+    beforeAlignment: DEFAULT_ALIGNMENT,
+    afterAlignment: DEFAULT_ALIGNMENT,
     consent: true,
     featured: false
   };
+}
+
+function AlignmentControl({ title, image, alignment = DEFAULT_ALIGNMENT, onChange }) {
+  const safe = normalizeAlignment(alignment);
+
+  return (
+    <section className="alignment-control">
+      <div className="alignment-preview">
+        {image ? (
+          <AlignedImage src={image} alt={`${title} preview`} alignment={safe} />
+        ) : (
+          <span>Upload image first</span>
+        )}
+        <i className="face-guide horizontal" />
+        <i className="face-guide vertical" />
+      </div>
+      <div className="alignment-fields">
+        <h3>{title}</h3>
+        <label>
+          Left / Right
+          <input type="range" min="0" max="100" value={safe.x} onChange={(e) => onChange("x", e.target.value)} />
+        </label>
+        <label>
+          Up / Down
+          <input type="range" min="0" max="100" value={safe.y} onChange={(e) => onChange("y", e.target.value)} />
+        </label>
+        <label>
+          Zoom
+          <input type="range" min="1" max="2.5" step="0.01" value={safe.zoom} onChange={(e) => onChange("zoom", e.target.value)} />
+        </label>
+        <button type="button" onClick={() => {
+          onChange("x", 50);
+          onChange("y", 50);
+          onChange("zoom", 1);
+        }}>Reset</button>
+      </div>
+    </section>
+  );
+}
+
+function AlignedImage({ src, alt, alignment = DEFAULT_ALIGNMENT, className = "" }) {
+  const safe = normalizeAlignment(alignment);
+  return (
+    <img
+      className={className}
+      src={src}
+      alt={alt}
+      style={{
+        objectPosition: `${safe.x}% ${safe.y}%`,
+        transform: `scale(${safe.zoom})`,
+        transformOrigin: `${safe.x}% ${safe.y}%`
+      }}
+    />
+  );
+}
+
+function normalizeAlignment(value) {
+  return {
+    x: clampNumber(value?.x, 50, 0, 100),
+    y: clampNumber(value?.y, 50, 0, 100),
+    zoom: clampNumber(value?.zoom, 1, 1, 2.5)
+  };
+}
+
+function clampNumber(value, fallback, min, max) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
 }
 
 function slugify(value) {

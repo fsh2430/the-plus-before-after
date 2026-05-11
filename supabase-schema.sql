@@ -9,6 +9,8 @@ create table if not exists public.cases (
   summary text,
   before_image text not null,
   after_image text not null,
+  before_alignment jsonb not null default '{"x": 50, "y": 50, "zoom": 1}'::jsonb,
+  after_alignment jsonb not null default '{"x": 50, "y": 50, "zoom": 1}'::jsonb,
   consent boolean not null default true,
   featured boolean not null default false,
   created_at timestamptz not null default now(),
@@ -17,6 +19,12 @@ create table if not exists public.cases (
 
 alter table public.cases
 add column if not exists subcategory text not null default 'General';
+
+alter table public.cases
+add column if not exists before_alignment jsonb not null default '{"x": 50, "y": 50, "zoom": 1}'::jsonb;
+
+alter table public.cases
+add column if not exists after_alignment jsonb not null default '{"x": 50, "y": 50, "zoom": 1}'::jsonb;
 
 create index if not exists cases_doctor_idx on public.cases (doctor);
 create index if not exists cases_category_idx on public.cases (category);

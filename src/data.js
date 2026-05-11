@@ -34,6 +34,8 @@ export const initialCases = [
     summary: "Balanced fold height and softer upper-eye contour with a natural expression.",
     beforeImage: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=900&q=80",
     afterImage: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=900&q=80",
+    beforeAlignment: { x: 50, y: 50, zoom: 1 },
+    afterAlignment: { x: 50, y: 50, zoom: 1 },
     consent: true,
     featured: true
   },
@@ -48,6 +50,8 @@ export const initialCases = [
     summary: "Improved bridge definition and tip support while keeping the profile calm.",
     beforeImage: "https://images.unsplash.com/photo-1612531386530-97286d97c2d2?auto=format&fit=crop&w=900&q=80",
     afterImage: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=900&q=80",
+    beforeAlignment: { x: 50, y: 50, zoom: 1 },
+    afterAlignment: { x: 50, y: 50, zoom: 1 },
     consent: true,
     featured: true
   },
@@ -62,6 +66,8 @@ export const initialCases = [
     summary: "Structural correction for a cleaner nasal line and improved symmetry.",
     beforeImage: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
     afterImage: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=900&q=80",
+    beforeAlignment: { x: 50, y: 50, zoom: 1 },
+    afterAlignment: { x: 50, y: 50, zoom: 1 },
     consent: true,
     featured: false
   },
@@ -76,6 +82,8 @@ export const initialCases = [
     summary: "A refined silhouette plan focused on proportion, comfort, and recovery pacing.",
     beforeImage: "https://images.unsplash.com/photo-1550345332-09e3ac987658?auto=format&fit=crop&w=900&q=80",
     afterImage: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?auto=format&fit=crop&w=900&q=80",
+    beforeAlignment: { x: 50, y: 50, zoom: 1 },
+    afterAlignment: { x: 50, y: 50, zoom: 1 },
     consent: true,
     featured: false
   }

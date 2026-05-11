@@ -274,6 +274,7 @@ main {
 .ba-preview div {
   position: relative;
   min-width: 0;
+  overflow: hidden;
 }
 
 .case-body {
@@ -528,6 +529,82 @@ main {
   font-weight: 700;
 }
 
+.alignment-control {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.55fr) minmax(220px, 1fr);
+  gap: 14px;
+  align-items: stretch;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfaf7;
+}
+
+.alignment-preview {
+  position: relative;
+  display: grid;
+  min-height: 230px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 8px;
+  background: #e5e9e6;
+}
+
+.alignment-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.alignment-preview span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.face-guide {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 0 1px rgba(36, 59, 55, 0.22);
+}
+
+.face-guide.horizontal {
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+}
+
+.face-guide.vertical {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+
+.alignment-fields h3 {
+  margin: 2px 0 8px;
+  font-size: 16px;
+}
+
+.alignment-fields label {
+  margin-top: 8px;
+}
+
+.alignment-fields input[type="range"] {
+  padding: 0;
+}
+
+.alignment-fields button {
+  min-height: 38px;
+  margin-top: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+
 .check-row label {
   display: inline-flex;
   gap: 8px;
@@ -572,6 +649,10 @@ main {
 
   .comparison {
     min-height: 420px;
+  }
+
+  .alignment-control {
+    grid-template-columns: 1fr;
   }
 }
 
