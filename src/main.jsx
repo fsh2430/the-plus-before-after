@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ArrowLeftRight,
@@ -76,19 +76,15 @@ function Header({ view, setView, status }) {
   return (
     <header className="site-header">
       <a className="brand" href="#" onClick={() => go("gallery")}>
-        <span className="brand-mark">TP</span>
+        <span className="brand-mark" aria-label="The Plus logo">THE PLUS</span>
         <span>
           <strong>The Plus Plastic Surgery</strong>
           <small>Before & After Archive</small>
         </span>
       </a>
       <nav className="top-actions" aria-label="Primary">
-        <span className={isSupabaseConfigured ? "connection good" : "connection"}>{status}</span>
         <button className={view === "gallery" ? "active" : ""} onClick={() => go("gallery")}>
           <Eye size={17} /> Gallery
-        </button>
-        <button className={view === "admin" ? "active" : ""} onClick={() => go("admin")}>
-          <Lock size={17} /> Admin
         </button>
       </nav>
     </header>
@@ -129,8 +125,8 @@ function Gallery({ cases }) {
             THE PLUS <span>Before &amp; After</span>
           </h1>
           <p>
-            의사, 시술 부위, 회복 기간별로 결과 사진을 빠르게 탐색할 수 있는
-            프리미엄 상담용 갤러리입니다.
+            A premium consultation gallery that allows you to quickly explore before-and-after results
+            by doctor, treatment area, and recovery timeline.
           </p>
         </div>
       </section>
@@ -322,10 +318,10 @@ function Admin({ cases, setCases, reloadCases }) {
         </div>
         <aside className="admin-note">
           <ShieldCheck size={24} />
-          <h2>운영 전 체크</h2>
+          <h2>?댁쁺 ??泥댄겕</h2>
           <p>
-            Supabase 연결 후에는 관리자 계정, 이미지 업로드 저장소,
-            환자 동의 상태, 공개 케이스 데이터를 서버에서 관리합니다.
+            Supabase ?곌껐 ?꾩뿉??愿由ъ옄 怨꾩젙, ?대?吏 ?낅줈????μ냼,
+            ?섏옄 ?숈쓽 ?곹깭, 怨듦컻 耳?댁뒪 ?곗씠?곕? ?쒕쾭?먯꽌 愿由ы빀?덈떎.
           </p>
         </aside>
       </section>
@@ -566,3 +562,5 @@ function slugify(value) {
 }
 
 createRoot(document.getElementById("root")).render(<App />);
+
+
