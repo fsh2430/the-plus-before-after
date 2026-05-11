@@ -139,8 +139,8 @@ main {
   min-height: 560px;
   padding: clamp(42px, 8vw, 90px) clamp(18px, 5vw, 72px);
   background:
-    linear-gradient(90deg, rgba(23, 33, 29, 0.94), rgba(36, 59, 55, 0.72)),
-    url("https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1800&q=80") center/cover;
+    linear-gradient(90deg, rgba(8, 25, 38, 0.32), rgba(8, 25, 38, 0.18)),
+    url("/hero-surgery-bg.png") center/cover;
   color: white;
 }
 
