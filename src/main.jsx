@@ -35,9 +35,16 @@ const CASE_VIEW_DEFS = [
 ];
 
 function App() {
-  const [view, setView] = useState(location.hash === "#admin" ? "admin" : "gallery");
+  const [view, setView] = useState(getViewFromHash);
   const [cases, setCases] = useState(loadLocalCases);
   const [status, setStatus] = useState("Loading cases...");
+
+  React.useEffect(() => {
+    const syncViewFromHash = () => setView(getViewFromHash());
+    syncViewFromHash();
+    window.addEventListener("hashchange", syncViewFromHash);
+    return () => window.removeEventListener("hashchange", syncViewFromHash);
+  }, []);
 
   React.useEffect(() => {
     let alive = true;
@@ -69,6 +76,10 @@ function App() {
       {view === "admin" ? <Admin cases={cases} setCases={setCases} reloadCases={reloadCases} /> : <Gallery cases={cases} />}
     </>
   );
+}
+
+function getViewFromHash() {
+  return window.location.hash.toLowerCase() === "#admin" ? "admin" : "gallery";
 }
 
 function Header({ view, setView, status }) {
@@ -259,18 +270,26 @@ function Admin({ cases, setCases, reloadCases }) {
   }
 
   const removeCase = async (id) => {
-    setNotice("Deleting case...");
-    await deleteCase(id);
-    setCases(cases.filter((item) => item.id !== id));
-    setNotice("Deleted.");
+    try {
+      setNotice("Deleting case...");
+      await deleteCase(id);
+      setCases(cases.filter((item) => item.id !== id));
+      setNotice("Deleted.");
+    } catch (error) {
+      setNotice(`Delete failed: ${formatSaveError(error)}`);
+    }
   };
   const saveCase = async (item) => {
-    setNotice("Saving case...");
-    const saved = await upsertCase(item);
-    const exists = cases.some((current) => current.id === saved.id);
-    setCases(exists ? cases.map((current) => current.id === saved.id ? saved : current) : [saved, ...cases]);
-    setEditing(null);
-    setNotice("Saved.");
+    try {
+      setNotice("Saving case...");
+      const saved = await upsertCase(item);
+      const exists = cases.some((current) => current.id === saved.id);
+      setCases(exists ? cases.map((current) => current.id === saved.id ? saved : current) : [saved, ...cases]);
+      setEditing(null);
+      setNotice("Saved.");
+    } catch (error) {
+      setNotice(`Save failed: ${formatSaveError(error)}`);
+    }
   };
   const exportJson = () => {
     const blob = new Blob([JSON.stringify(cases, null, 2)], { type: "application/json" });
@@ -292,9 +311,13 @@ function Admin({ cases, setCases, reloadCases }) {
           <button onClick={() => setEditing(emptyCase())}><Plus size={17} /> New Case</button>
           <button onClick={exportJson}><Download size={17} /> Export</button>
           <button onClick={async () => {
-            setNotice("Refreshing...");
-            await reloadCases();
-            setNotice("Refreshed.");
+            try {
+              setNotice("Refreshing...");
+              await reloadCases();
+              setNotice("Refreshed.");
+            } catch (error) {
+              setNotice(`Refresh failed: ${formatSaveError(error)}`);
+            }
           }}>Refresh</button>
           {isSupabaseConfigured && <button onClick={() => supabase.auth.signOut()}>Sign out</button>}
         </div>
@@ -379,8 +402,13 @@ function CaseEditor({ item, onSave, onCancel }) {
 
   const submit = (event) => {
     event.preventDefault();
+    setError("");
     const views = normalizeCaseViews(draft);
     const front = views.front;
+    if (!front.beforeImage || !front.afterImage) {
+      setError("Front Before image and Front After image are required before saving.");
+      return;
+    }
     onSave({
       ...draft,
       views,
@@ -669,6 +697,20 @@ function clampNumber(value, fallback, min, max) {
   const number = Number(value);
   if (!Number.isFinite(number)) return fallback;
   return Math.min(max, Math.max(min, number));
+}
+
+function formatSaveError(error) {
+  const message = error?.message || String(error);
+  if (message.includes("view_images")) {
+    return "Supabase schema is missing view_images. Run the latest supabase-schema.sql in Supabase SQL Editor, then try again.";
+  }
+  if (message.includes("before_image") || message.includes("after_image") || message.includes("not-null")) {
+    return "Front Before and Front After images are required.";
+  }
+  if (message.includes("row-level security") || message.includes("permission denied") || message.includes("JWT")) {
+    return "Permission issue. Sign out, sign in again with the Supabase admin account, then retry.";
+  }
+  return message;
 }
 
 function slugify(value) {
