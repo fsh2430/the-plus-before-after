@@ -7,8 +7,10 @@ import {
   Edit3,
   Filter,
   Lock,
+  Menu,
   Plus,
   Search,
+  X,
   ShieldCheck,
   Sparkles,
   Trash2,
@@ -83,9 +85,11 @@ function getViewFromHash() {
 }
 
 function Header({ view, setView, status }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const go = (next) => {
     setView(next);
     location.hash = next === "admin" ? "admin" : "";
+    setMenuOpen(false);
   };
 
   return (
@@ -93,6 +97,25 @@ function Header({ view, setView, status }) {
       <a className="brand" href="#" onClick={() => go("gallery")}>
         <img className="brand-logo" src="/the-plus-logo.png" alt="The Plus Plastic Surgery" />
       </a>
+      <button
+        className="menu-toggle"
+        type="button"
+        aria-label={menuOpen ? "Close menu" : "Open menu"}
+        aria-expanded={menuOpen}
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        {menuOpen ? <X size={22} /> : <Menu size={22} />}
+      </button>
+      {menuOpen && (
+        <nav className="site-menu" aria-label="Site menu">
+          <button type="button" onClick={() => go("gallery")}>Before &amp; After</button>
+          <button type="button" onClick={() => {
+            document.querySelector(".filter-bar")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            setMenuOpen(false);
+          }}>Filters</button>
+          <button type="button" onClick={() => go("admin")}>Admin</button>
+        </nav>
+      )}
     </header>
   );
 }

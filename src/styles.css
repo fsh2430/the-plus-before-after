@@ -46,6 +46,44 @@ button {
   backdrop-filter: blur(18px);
 }
 
+.menu-toggle {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--deep);
+}
+
+.site-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: clamp(18px, 5vw, 72px);
+  display: grid;
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 18px 40px rgba(23, 33, 29, 0.14);
+}
+
+.site-menu button {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+
+.site-menu button:hover {
+  background: #f0eee7;
+}
+
 .brand {
   display: flex;
   align-items: center;
