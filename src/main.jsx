@@ -361,14 +361,6 @@ function Admin({ cases, setCases, reloadCases }) {
             </div>
           ))}
         </div>
-        <aside className="admin-note">
-          <ShieldCheck size={24} />
-          <h2>?댁쁺 ??泥댄겕</h2>
-          <p>
-            Supabase ?곌껐 ?꾩뿉??愿由ъ옄 怨꾩젙, ?대?吏 ?낅줈????μ냼,
-            ?섏옄 ?숈쓽 ?곹깭, 怨듦컻 耳?댁뒪 ?곗씠?곕? ?쒕쾭?먯꽌 愿由ы빀?덈떎.
-          </p>
-        </aside>
       </section>
 
       {editing && <CaseEditor item={editing} onSave={saveCase} onCancel={() => setEditing(null)} />}
